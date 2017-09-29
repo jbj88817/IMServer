@@ -13,22 +13,27 @@ import javax.persistence.Id;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
+//  用户的Model，对应数据库
 @Entity
 @Table(name = "TB_USER")
 public class User {
 
+    // 这是一个主键
     @Id
     @PrimaryKeyJoinColumn
     // 主键生成存储的类型为UUID
     @GeneratedValue(generator = "uuid")
     // 把UUID的生成器定义为uuid2， uuid2是常规的UUID toString
     @GenericGenerator(name = "uuid", strategy = "uuid2")
+    // 不允许更改，不允许为null
     @Column(updatable = false, nullable = false)
     private String id;
 
+    // 用户名必须唯一
     @Column(nullable = false, length = 128, unique = true)
     private String name;
 
+    // 电话必须唯一
     @Column(nullable = false, length = 62, unique = true)
     private String phone;
 
@@ -50,20 +55,21 @@ public class User {
     @Column(unique = true)
     private String token;
 
+    // 用于推送的设备ID
     @Column
     private String pushId;
 
-    // 创建时写入了数据库
+    // 定义为创建时间戳，在创建时就已经写入
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createAt = LocalDateTime.now();
 
-    // 更新时写入了数据库
+    // 定义为更新时间戳，在创建时就已经写入
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updateAt = LocalDateTime.now();
 
-    // 创建时写入了数据库
+    // 最后一次收到消息的时间
     @Column
     private LocalDateTime lastReceivedAt = LocalDateTime.now();
 
