@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -55,8 +57,23 @@ public class Message {
     @Column(nullable = false)
     private LocalDateTime updateAt = LocalDateTime.now();
 
+    // 发送者 不为空
+    // 多个消息对应一个发送者
+    @JoinColumn(name = "senderId")
+    @ManyToOne(optional = false)
     private User sender;
+    // 这个字段仅仅只是为了对应sender的数据库字段senderId
+    // 不允许手动的更新或者插入
+    @Column(updatable = false, insertable = false)
+    private String senderId;
+
+    // 接收者 可为空
+    // 多个消息对应一个接收者
+    @ManyToOne
+    @JoinColumn(name = "receiverId")
     private User receiver;
+    @Column(updatable = false, insertable = false)
+    private String receiverId;
 
 
     public String getId() {
@@ -121,5 +138,21 @@ public class Message {
 
     public void setReceiver(User receiver) {
         this.receiver = receiver;
+    }
+
+    public String getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(String senderId) {
+        this.senderId = senderId;
+    }
+
+    public String getReceiverId() {
+        return receiverId;
+    }
+
+    public void setReceiverId(String receiverId) {
+        this.receiverId = receiverId;
     }
 }
