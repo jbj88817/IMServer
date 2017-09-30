@@ -2,14 +2,22 @@ package us.bojie.imbo.push.bean.db;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -72,6 +80,25 @@ public class User {
     // 最后一次收到消息的时间
     @Column
     private LocalDateTime lastReceivedAt = LocalDateTime.now();
+
+    // 我关注的人的列表方法
+    // 对应的数据库表字段为TB_USER_FOLLOW.originId
+    @JoinColumn(name = "originId")
+    // 定义为懒加载，默认加载User信息的时候，并不查询这个集合
+    @LazyCollection(LazyCollectionOption.EXTRA)
+    // 1对多，一个用户可以有很多关注人，每一次关注都是一个记录
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<UserFollow> following = new HashSet<>();
+
+    // 关注我的人的列表
+    // 对应的数据库表字段为TB_USER_FOLLOW.targetId
+    @JoinColumn(name = "targetId")
+    // 定义为懒加载，默认加载User信息的时候，并不查询这个集合
+    @LazyCollection(LazyCollectionOption.EXTRA)
+    // 1对多，一个用户可以被很多人关注，每一次关注都是一个记录
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<UserFollow> followers = new HashSet<>();
+
 
     public String getId() {
         return id;
@@ -167,5 +194,21 @@ public class User {
 
     public void setLastReceivedAt(LocalDateTime lastReceivedAt) {
         this.lastReceivedAt = lastReceivedAt;
+    }
+
+    public Set<UserFollow> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Set<UserFollow> following) {
+        this.following = following;
+    }
+
+    public Set<UserFollow> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<UserFollow> followers) {
+        this.followers = followers;
     }
 }
