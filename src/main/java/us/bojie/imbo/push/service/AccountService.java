@@ -7,7 +7,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import us.bojie.imbo.push.bean.User;
+import us.bojie.imbo.push.bean.db.User;
 
 // 127.0.0.1/api/account
 @Path("/account")
