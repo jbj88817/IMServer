@@ -10,10 +10,6 @@
         <!--链接地址用户名密码 -->
         <property name="connection.url">jdbc:mysql://127.0.0.1:3306/DB_I_T_PUSH?serverTimezone=UTC&amp;useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false</property>
         <property name="connection.username">root</property>
-        <property name="connection.password"></property>
-
-        <!--<property name="connection.url">jdbc:mysql://qiujuer.net:6968/DB_I_T_PUSH?serverTimezone=UTC&amp;useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false</property>-->
-
 
         <!-- JDBC 链接池大小 -->
         <property name="connection.pool_size">5</property>
@@ -54,6 +50,25 @@
         update: 这个操作启动的时候会去检查schema是否一致，如果不一致会做scheme更新
         validate: 启动时验证现有schema与你配置的hibernate是否一致，如果不一致就抛出异常，并不做更新
         -->
+
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.User"/>
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.UserFollow"/>
+
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.Group"/>
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.GroupMember"/>
+
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.Message"/>
+
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.PushHistory"/>
+        <mapping package="us.bojie.imbo.push.bean.db"
+                 class="us.bojie.imbo.push.bean.db.Apply"/>
+
 
     </session-factory>
 </hibernate-configuration>
