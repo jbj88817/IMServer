@@ -4,6 +4,7 @@ import org.hibernate.Session;
 
 import us.bojie.imbo.push.bean.db.User;
 import us.bojie.imbo.push.utils.Hib;
+import us.bojie.imbo.push.utils.TextUtil;
 
 public class UserFactory {
 
@@ -17,6 +18,11 @@ public class UserFactory {
      * @return User
      */
     public static User register(String account, String password, String name) {
+        // 去除账户中的首位空格
+        account = account.trim();
+        // 处理密码
+        password = encodePassword(password);
+
         User user = new User();
         user.setName(name);
         user.setPassword(password);
@@ -38,5 +44,14 @@ public class UserFactory {
             session.getTransaction().rollback();
             return null;
         }
+    }
+
+    private static String encodePassword(String password) {
+        // 密码去除首位空格
+        password = password.trim();
+        // 进行MD5非对称加密，加盐会更安全，盐也需要存储
+        password = TextUtil.getMD5(password);
+        // 再进行一次对称的Base64加密，当然可以采取加盐的方案
+        return TextUtil.encodeBase64(password);
     }
 }

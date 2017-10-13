@@ -8,6 +8,8 @@ import javax.ws.rs.core.MediaType;
 
 import us.bojie.imbo.push.bean.api.account.RegisterModel;
 import us.bojie.imbo.push.bean.card.UserCard;
+import us.bojie.imbo.push.bean.db.User;
+import us.bojie.imbo.push.factory.UserFactory;
 
 // 127.0.0.1/api/account
 @Path("/account")
@@ -18,9 +20,19 @@ public class AccountService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public UserCard register(RegisterModel model) {
-        UserCard card = new UserCard();
-        card.setName(model.getName());
-        card.setFollow(true);
-        return card;
+
+        User user = UserFactory.register(model.getAccount(),
+                model.getPassword(),
+                model.getName());
+        if (user != null) {
+            UserCard card = new UserCard();
+            card.setName(user.getName());
+            card.setPhone(user.getPhone());
+            card.setSex(user.getSex());
+            card.setModifyAt(user.getUpdateAt());
+            card.setFollow(true);
+            return card;
+        }
+        return null;
     }
 }
