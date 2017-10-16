@@ -8,6 +8,20 @@ import us.bojie.imbo.push.utils.TextUtil;
 
 public class UserFactory {
 
+    public static User findByPhone(String phone) {
+        return Hib.query(session -> (User) session
+                .createQuery("from User where phone=:inPhone")
+                .setParameter("inPhone", phone)
+                .uniqueResult());
+    }
+
+    public static User findByName(String name) {
+        return Hib.query(session -> (User) session
+                .createQuery("from User where name=:inName")
+                .setParameter("inName", name)
+                .uniqueResult());
+    }
+
     /**
      * 用户注册
      * 注册的操作需要写入数据库，并返回数据库中的User信息
