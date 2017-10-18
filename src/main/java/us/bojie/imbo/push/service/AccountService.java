@@ -6,8 +6,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import us.bojie.imbo.push.bean.api.account.AccountResponseModel;
 import us.bojie.imbo.push.bean.api.account.RegisterModel;
-import us.bojie.imbo.push.bean.card.UserCard;
+import us.bojie.imbo.push.bean.api.base.ResponseModel;
 import us.bojie.imbo.push.bean.db.User;
 import us.bojie.imbo.push.factory.UserFactory;
 
@@ -19,34 +20,30 @@ public class AccountService {
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public UserCard register(RegisterModel model) {
+    public ResponseModel<AccountResponseModel> register(RegisterModel model) {
 
+        // 已有账户
         User user = UserFactory.findByPhone(model.getAccount().trim());
         if (user != null) {
-            UserCard card = new UserCard();
-            card.setName("Existing account");
-            return card;
+            return ResponseModel.buildHaveAccountError();
         }
 
+        // 已有用户名
         user = UserFactory.findByName(model.getName().trim());
         if (user != null) {
-            UserCard card = new UserCard();
-            card.setName("Existing user name");
-            return card;
+            return ResponseModel.buildHaveNameError();
         }
 
+        // 开始注册逻辑
         user = UserFactory.register(model.getAccount(),
                 model.getPassword(),
                 model.getName());
         if (user != null) {
-            UserCard card = new UserCard();
-            card.setName(user.getName());
-            card.setPhone(user.getPhone());
-            card.setSex(user.getSex());
-            card.setModifyAt(user.getUpdateAt());
-            card.setFollow(true);
-            return card;
+            AccountResponseModel responseModel = new AccountResponseModel(user);
+            return ResponseModel.buildOk(responseModel);
+        } else {
+            // 注册异常
+            return ResponseModel.buildRegisterError();
         }
-        return null;
     }
 }
