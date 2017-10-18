@@ -7,6 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import us.bojie.imbo.push.bean.api.account.AccountResponseModel;
+import us.bojie.imbo.push.bean.api.account.LoginModel;
 import us.bojie.imbo.push.bean.api.account.RegisterModel;
 import us.bojie.imbo.push.bean.api.base.ResponseModel;
 import us.bojie.imbo.push.bean.db.User;
@@ -16,6 +17,22 @@ import us.bojie.imbo.push.factory.UserFactory;
 @Path("/account")
 public class AccountService {
 
+    // 登录
+    @POST
+    @Path("/login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseModel<AccountResponseModel> login(LoginModel model) {
+        User user = UserFactory.login(model.getAccount(), model.getPassword());
+        if (user != null) {
+            AccountResponseModel responseModel = new AccountResponseModel(user);
+            return ResponseModel.buildOk(responseModel);
+        } else {
+            return ResponseModel.buildLoginError();
+        }
+    }
+
+    // 注册
     @POST
     @Path("/register")
     @Consumes(MediaType.APPLICATION_JSON)

@@ -8,6 +8,17 @@ import us.bojie.imbo.push.utils.TextUtil;
 
 public class UserFactory {
 
+    // 通过Token字段查询用户信息
+    // 只能自己使用，查询的信息是个人信息，非他人信息
+    public static User findByToken(String token) {
+        return Hib.query(session -> (User) session
+                .createQuery("from User where token=:token")
+                .setParameter("token", token)
+                .uniqueResult());
+    }
+
+
+    // 通过Phone找到User
     public static User findByPhone(String phone) {
         return Hib.query(session -> (User) session
                 .createQuery("from User where phone=:inPhone")
@@ -15,6 +26,7 @@ public class UserFactory {
                 .uniqueResult());
     }
 
+    // 通过Name找到User
     public static User findByName(String name) {
         return Hib.query(session -> (User) session
                 .createQuery("from User where name=:inName")
@@ -59,7 +71,10 @@ public class UserFactory {
         user.setPhone(account);
 
         // 数据库存储
-        return Hib.query(session -> (User) session.save(user));
+        return Hib.query(session -> {
+            session.save(user);
+            return user;
+        });
     }
 
     /**
@@ -80,6 +95,29 @@ public class UserFactory {
             return user;
         });
     }
+
+    /**
+     * 使用账户和密码进行登录
+     */
+    public static User login(String account, String password) {
+        final String accountStr = account.trim();
+        // 把原文进行同样的处理，然后才能匹配
+        final String encodePassword = encodePassword(password);
+
+        // 寻找
+        User user = Hib.query(session -> (User) session
+                .createQuery("from User where phone=:phone and password=:password")
+                .setParameter("phone", accountStr)
+                .setParameter("password", encodePassword)
+                .uniqueResult());
+
+        if (user != null) {
+            // 对User进行登录操作，更新Token
+            user = login(user);
+        }
+        return user;
+    }
+
 
     /**
      * 对密码进行加密操作
