@@ -1,8 +1,12 @@
 package us.bojie.imbo.push.service;
 
+import com.google.common.base.Strings;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -29,6 +33,12 @@ public class AccountService {
         }
         User user = UserFactory.login(model.getAccount(), model.getPassword());
         if (user != null) {
+            // 如果有携带PushId
+            if (!Strings.isNullOrEmpty(model.getPushId())) {
+                return bind(user, model.getPushId());
+            }
+
+            // 返回当前的账户
             AccountResponseModel responseModel = new AccountResponseModel(user);
             return ResponseModel.buildOk(responseModel);
         } else {
@@ -66,11 +76,63 @@ public class AccountService {
                 model.getPassword(),
                 model.getName());
         if (user != null) {
+            // 如果有携带PushId
+            if (!Strings.isNullOrEmpty(model.getPushId())) {
+                return bind(user, model.getPushId());
+            }
+
+            // 返回当前的账户
             AccountResponseModel responseModel = new AccountResponseModel(user);
             return ResponseModel.buildOk(responseModel);
         } else {
             // 注册异常
             return ResponseModel.buildRegisterError();
         }
+    }
+
+    // 绑定设备Id
+    @POST
+    @Path("/bind/{pushId}")
+    // 指定请求与返回的相应体为JSON
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    // 从请求头中获取token字段
+    // pushId从url地址中获取
+    public ResponseModel<AccountResponseModel> bind(@HeaderParam("token") String token,
+                                                    @PathParam("pushId") String pushId) {
+        if (Strings.isNullOrEmpty(token)
+                || Strings.isNullOrEmpty(pushId)) {
+            // 返回参数异常
+            return ResponseModel.buildParameterError();
+        }
+
+        // 拿到自己的个人信息
+        User user = UserFactory.findByToken(token);
+        if (user != null) {
+            return bind(user, pushId);
+        } else {
+            // Token 失效，所有无法进行绑定
+            return ResponseModel.buildAccountError();
+        }
+    }
+
+    /**
+     * 绑定的操作
+     *
+     * @param self   自己
+     * @param pushId PushId
+     * @return User
+     */
+    private ResponseModel<AccountResponseModel> bind(User self, String pushId) {
+        // 进行设备Id绑定的操作
+        User user = UserFactory.bindPushId(self, pushId);
+        if (user == null) {
+            // 绑定失败则是服务器异常
+            return ResponseModel.buildServiceError();
+        }
+
+        // 返回当前的账户, 并且已经绑定了
+        AccountResponseModel responseModel = new AccountResponseModel(user, true);
+        return ResponseModel.buildOk(responseModel);
     }
 }
