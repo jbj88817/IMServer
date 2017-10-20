@@ -1,5 +1,8 @@
 package us.bojie.imbo.push.factory;
 
+import com.google.common.base.Strings;
+
+import java.util.List;
 import java.util.UUID;
 
 import us.bojie.imbo.push.bean.db.User;
@@ -32,6 +35,59 @@ public class UserFactory {
                 .createQuery("from User where name=:inName")
                 .setParameter("inName", name)
                 .uniqueResult());
+    }
+
+    /**
+     * 给当前的账户绑定PushId
+     *
+     * @param user   自己的User
+     * @param pushId 自己设备的PushId
+     * @return User
+     */
+    public static User bindPushId(User user, String pushId) {
+        if (Strings.isNullOrEmpty(pushId)) {
+            return null;
+        }
+
+        // 第一步，查询是否有其他账户绑定了这个设备
+        // 取消绑定，避免推送混乱
+        // 查询的列表不能包括自己
+        Hib.queryOnly(session -> {
+            @SuppressWarnings("unchecked")
+            List<User> userList = (List<User>) session
+                    .createQuery("from User where lower(pushId)=:pushId and id!=:userId")
+                    .setParameter("pushId", pushId.toLowerCase())
+                    .setParameter("userId", user.getId())
+                    .list();
+
+            for (User u : userList) {
+                // 更新为null
+                u.setPushId(null);
+                session.saveOrUpdate(u);
+            }
+        });
+
+        // 如果当前需要绑定的设备Id，之前已经绑定过了
+        // 那么不需要额外绑定
+        if (pushId.equalsIgnoreCase(user.getPushId())) {
+            return user;
+        } else {
+            // 如果当前账户之前的设备Id，和需要绑定的不同
+            // 那么需要单点登录，让之前的设备退出账户，
+            // 给之前的设备推送一条退出消息
+            if (Strings.isNullOrEmpty(user.getPushId())) {
+                // TODO 推送一个退出消息
+            }
+
+            // 更新新的设备Id
+            user.setPushId(pushId);
+            return Hib.query(session -> {
+                session.saveOrUpdate(user);
+                return user;
+            });
+        }
+
+
     }
 
     /**
