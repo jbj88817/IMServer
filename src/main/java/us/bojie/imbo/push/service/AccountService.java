@@ -23,6 +23,10 @@ public class AccountService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ResponseModel<AccountResponseModel> login(LoginModel model) {
+        if (!LoginModel.check(model)) {
+            // 返回参数异常
+            return ResponseModel.buildParameterError();
+        }
         User user = UserFactory.login(model.getAccount(), model.getPassword());
         if (user != null) {
             AccountResponseModel responseModel = new AccountResponseModel(user);
@@ -38,6 +42,12 @@ public class AccountService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ResponseModel<AccountResponseModel> register(RegisterModel model) {
+
+        // Check
+        if (!RegisterModel.check(model)) {
+            // 返回参数异常
+            return ResponseModel.buildParameterError();
+        }
 
         // 已有账户
         User user = UserFactory.findByPhone(model.getAccount().trim());

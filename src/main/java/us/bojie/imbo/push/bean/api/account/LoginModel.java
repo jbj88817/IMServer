@@ -1,5 +1,6 @@
 package us.bojie.imbo.push.bean.api.account;
 
+import com.google.common.base.Strings;
 import com.google.gson.annotations.Expose;
 
 public class LoginModel {
@@ -24,5 +25,13 @@ public class LoginModel {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    // 校验
+    public static boolean check(LoginModel model) {
+        return model != null
+                && !Strings.isNullOrEmpty(model.account)
+                && !Strings.isNullOrEmpty(model.password);
+
     }
 }
