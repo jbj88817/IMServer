@@ -81,13 +81,21 @@ public class UserFactory {
 
             // 更新新的设备Id
             user.setPushId(pushId);
-            return Hib.query(session -> {
-                session.saveOrUpdate(user);
-                return user;
-            });
+            return update(user);
         }
+    }
 
-
+    /**
+     * 更新用户信息到数据库
+     *
+     * @param user User
+     * @return User
+     */
+    public static User update(User user) {
+        return Hib.query(session -> {
+            session.saveOrUpdate(user);
+            return user;
+        });
     }
 
     /**
@@ -146,10 +154,7 @@ public class UserFactory {
         // 进行一次Base64格式化
         newToken = TextUtil.encodeBase64(newToken);
         user.setToken(newToken);
-        return Hib.query(session -> {
-            session.saveOrUpdate(user);
-            return user;
-        });
+        return update(user);
     }
 
     /**
