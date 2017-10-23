@@ -3,7 +3,6 @@ package us.bojie.imbo.push.service;
 import com.google.common.base.Strings;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -19,7 +18,7 @@ import us.bojie.imbo.push.factory.UserFactory;
 
 // 127.0.0.1/api/account
 @Path("/account")
-public class AccountService {
+public class AccountService extends BaseService {
 
     // 登录
     @POST
@@ -98,22 +97,14 @@ public class AccountService {
     @Produces(MediaType.APPLICATION_JSON)
     // 从请求头中获取token字段
     // pushId从url地址中获取
-    public ResponseModel<AccountResponseModel> bind(@HeaderParam("token") String token,
-                                                    @PathParam("pushId") String pushId) {
-        if (Strings.isNullOrEmpty(token)
-                || Strings.isNullOrEmpty(pushId)) {
+    public ResponseModel<AccountResponseModel> bind(@PathParam("pushId") String pushId) {
+        if (Strings.isNullOrEmpty(pushId)) {
             // 返回参数异常
             return ResponseModel.buildParameterError();
         }
 
-        // 拿到自己的个人信息
-        User user = UserFactory.findByToken(token);
-        if (user != null) {
-            return bind(user, pushId);
-        } else {
-            // Token 失效，所有无法进行绑定
-            return ResponseModel.buildAccountError();
-        }
+        User user = getSelf();
+        return bind(user, pushId);
     }
 
     /**
