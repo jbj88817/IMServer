@@ -6,6 +6,7 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,7 @@ import javax.persistence.Table;
 //  用户的Model，对应数据库
 @Entity
 @Table(name = "TB_USER")
-public class User {
+public class User implements Principal {
 
     // 这是一个主键
     @Id
