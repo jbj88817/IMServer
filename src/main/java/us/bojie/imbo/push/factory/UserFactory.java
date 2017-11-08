@@ -40,6 +40,12 @@ public class UserFactory {
                 .uniqueResult());
     }
 
+    // 通过Id找到User
+    public static User findById(String id) {
+        // 通过Id查询，更方便
+        return Hib.query(session -> session.get(User.class, id));
+    }
+
     /**
      * 给当前的账户绑定PushId
      *
@@ -214,5 +220,61 @@ public class UserFactory {
             return flows.stream().map(UserFollow::getTarget)
                     .collect(Collectors.toList());
         });
+    }
+
+    /**
+     * 关注人的操作
+     *
+     * @param origin 发起者
+     * @param target 被关注的人
+     * @param alias  备注名
+     * @return 被关注的人的信息
+     */
+    public static User follow(final User origin, final User target, final String alias) {
+        UserFollow follow = getUserFollow(origin, target);
+        if (follow != null) {
+            // 已关注，直接返回
+            return follow.getTarget();
+        }
+
+        return Hib.query(session -> {
+            // 想要操作懒加载的数据，需要重新load一次
+            session.load(origin, origin.getId());
+            session.load(target, target.getId());
+
+            // 我关注人的时候，同时他也关注我，
+            // 所以需要添加两条UserFollow数据
+            UserFollow originFollow = new UserFollow();
+            originFollow.setOrigin(origin);
+            originFollow.setTarget(target);
+            // 备注是我对他的备注，他对我默认没有备注
+            originFollow.setAlias(alias);
+
+
+            UserFollow targetFollow = new UserFollow();
+            targetFollow.setOrigin(origin);
+            targetFollow.setTarget(target);
+
+            session.save(originFollow);
+            session.save(targetFollow);
+
+            return target;
+        });
+    }
+
+    /**
+     * 查询两个人是否已经关注
+     *
+     * @param origin 发起者
+     * @param target 被关注人
+     * @return 返回中间类UserFollow
+     */
+    public static UserFollow getUserFollow(final User origin, final User target) {
+        return Hib.query(session -> (UserFollow) session
+                .createQuery("from UserFollow where originId = :originId and targetId = :targetId")
+                .setParameter("originId", origin.getId())
+                .setParameter("targetId", target.getId())
+                // 查询一条数据
+                .uniqueResult());
     }
 }
