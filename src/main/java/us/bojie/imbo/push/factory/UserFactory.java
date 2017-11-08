@@ -3,9 +3,12 @@ package us.bojie.imbo.push.factory;
 import com.google.common.base.Strings;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import us.bojie.imbo.push.bean.db.User;
+import us.bojie.imbo.push.bean.db.UserFollow;
 import us.bojie.imbo.push.utils.Hib;
 import us.bojie.imbo.push.utils.TextUtil;
 
@@ -193,5 +196,23 @@ public class UserFactory {
         password = TextUtil.getMD5(password);
         // 再进行一次对称的Base64加密，当然可以采取加盐的方案
         return TextUtil.encodeBase64(password);
+    }
+
+    /**
+     * 获取我的联系人的列表
+     *
+     * @param self User
+     * @return List<User>
+     */
+    public static List<User> contacts(User self) {
+        return Hib.query(session -> {
+            // 重新加载一次用户信息到self中，和当前的session绑定
+            session.load(self, self.getId());
+            // 获取我关注的人
+            Set<UserFollow> flows = self.getFollowing();
+            // 使用简写方式
+            return flows.stream().map(UserFollow::getTarget)
+                    .collect(Collectors.toList());
+        });
     }
 }
