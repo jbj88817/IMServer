@@ -1,5 +1,7 @@
 package us.bojie.imbo.push.service;
 
+import com.google.common.base.Strings;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,7 +63,8 @@ public class UserService extends BaseService {
         return ResponseModel.buildOk(userCards);
     }
 
-    // 关注人
+    // 关注人，
+    // 简化：关注人的操作其实是双方同时关注
     @PUT // 修改类使用Put
     @Path("/follow/{followId}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -70,7 +73,8 @@ public class UserService extends BaseService {
         User self = getSelf();
 
         // 不能关注我自己
-        if (self.getId().equalsIgnoreCase(followId)) {
+        if (self.getId().equalsIgnoreCase(followId)
+                || Strings.isNullOrEmpty(followId)) {
             // 返回参数异常
             return ResponseModel.buildParameterError();
         }
@@ -95,4 +99,33 @@ public class UserService extends BaseService {
         return ResponseModel.buildOk(new UserCard(followUser, true));
 
     }
+
+    // 获取某人的信息
+    @GET
+    @Path("{id}") // http://127.0.0.1/api/user/{id}
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseModel<UserCard> getUser(@PathParam("id") String id) {
+        if (Strings.isNullOrEmpty(id)) {
+            // 返回参数异常
+            return ResponseModel.buildParameterError();
+        }
+
+        User self = getSelf();
+        if (self.getId().equalsIgnoreCase(id)) {
+            // 返回自己，不必查询数据库
+            return ResponseModel.buildOk(new UserCard(self, true));
+        }
+
+        User user = UserFactory.findById(id);
+        if (user == null) {
+            // 没找到，返回没找到用户
+            return ResponseModel.buildNotFoundUserError(null);
+        }
+
+        // 如果我们直接有关注的记录，则我已关注需要查询信息的用户
+        boolean isFollow = UserFactory.getUserFollow(self, user) != null;
+        return ResponseModel.buildOk(new UserCard(user, isFollow));
+    }
+
 }
