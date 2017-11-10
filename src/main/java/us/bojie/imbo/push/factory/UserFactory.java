@@ -250,10 +250,10 @@ public class UserFactory {
             // 备注是我对他的备注，他对我默认没有备注
             originFollow.setAlias(alias);
 
-
+            // 发起者是他，我是被关注的人的记录
             UserFollow targetFollow = new UserFollow();
-            targetFollow.setOrigin(origin);
-            targetFollow.setTarget(target);
+            targetFollow.setOrigin(target);
+            targetFollow.setTarget(origin);
 
             session.save(originFollow);
             session.save(targetFollow);
@@ -274,7 +274,8 @@ public class UserFactory {
                 .createQuery("from UserFollow where originId = :originId and targetId = :targetId")
                 .setParameter("originId", origin.getId())
                 .setParameter("targetId", target.getId())
-                // 查询一条数据
+                .setMaxResults(1)
+                // 唯一查询返回
                 .uniqueResult());
     }
 
