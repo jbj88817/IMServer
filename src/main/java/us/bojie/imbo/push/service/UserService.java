@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -97,7 +98,6 @@ public class UserService extends BaseService {
 
         // 返回关注的人的信息
         return ResponseModel.buildOk(new UserCard(followUser, true));
-
     }
 
     // 获取某人的信息
@@ -128,4 +128,38 @@ public class UserService extends BaseService {
         return ResponseModel.buildOk(new UserCard(user, isFollow));
     }
 
+    // 搜索人的接口实现
+    // 为了简化分页：只返回20条数据
+    @GET // 搜索人，不涉及数据更改，只是查询，则为GET
+    // http://127.0.0.1/api/user/search/
+    @Path("/search/{name:(.*)?}") // 名字为任意字符，可以为空
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseModel<List<UserCard>> search(@DefaultValue("") @PathParam("name") String name) {
+        User self = getSelf();
+
+        // 先查询数据
+        List<User> searchUsers = UserFactory.search(name);
+
+        // 把查询的人封装为UserCard
+        // 判断这些人是否有我已经关注的人，
+        // 如果有，则返回的关注状态中应该已经设置好状态
+
+        // 拿出我的联系人
+        final List<User> contacts = UserFactory.contacts(self);
+
+        // 把User->UserCard
+        List<UserCard> userCards = searchUsers.stream()
+                .map(user -> {
+                    // 判断这个人是否是我自己，或者是我的联系人中的人
+                    boolean isFollow = user.getId().equalsIgnoreCase(self.getId())
+                            || contacts.stream().anyMatch(
+                            // 进行联系人的任意匹配，匹配其中的Id字段
+                            contactUser -> contactUser.getId()
+                                    .equalsIgnoreCase(user.getId()));
+
+                    return new UserCard(user, isFollow);
+                }).collect(Collectors.toList());
+        return ResponseModel.buildOk(userCards);
+    }
 }
